@@ -224,16 +224,24 @@ export const parseTimeInput = (timeStr: string): number => {
       return parts[0] * 60 + parts[1] + parts[2] / 60;
     }
   } else {
-    if (cleanStr.length === 4) {
+    if (cleanStr.length === 3) {
+      // 444 -> 4:44
+      const minutes = parseInt(cleanStr.substring(0, 1));
+      const seconds = parseInt(cleanStr.substring(1, 3));
+      return minutes + seconds / 60;
+    } else if (cleanStr.length === 4) {
+      // 1044 -> 10:44
       const minutes = parseInt(cleanStr.substring(0, 2));
       const seconds = parseInt(cleanStr.substring(2, 4));
       return minutes + seconds / 60;
     } else if (cleanStr.length === 5) {
+      // 10344 -> 1:03:44
       const hours = parseInt(cleanStr.substring(0, 1));
       const minutes = parseInt(cleanStr.substring(1, 3));
       const seconds = parseInt(cleanStr.substring(3, 5));
       return hours * 60 + minutes + seconds / 60;
     } else if (cleanStr.length === 6) {
+      // 100344 -> 10:03:44
       const hours = parseInt(cleanStr.substring(0, 2));
       const minutes = parseInt(cleanStr.substring(2, 4));
       const seconds = parseInt(cleanStr.substring(4, 6));

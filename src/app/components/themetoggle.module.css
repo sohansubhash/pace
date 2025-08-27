@@ -33,3 +33,7 @@
     width: 40px;
     height: 40px;
 }
+
+[data-theme="dark"] .icon {
+    filter: brightness(1.5) contrast(0.8);
+}
