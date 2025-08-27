@@ -1,0 +1,26 @@
+.container {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.inlineUnit {
+    font-size: var(--inline-unit-size);
+    color: var(--inline-unit-color);
+    font-weight: var(--inline-unit-weight);
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-left: 30px;
+    white-space: nowrap;
+    z-index: 2;
+}
+
+@media (max-width: 640px) {
+    .inlineUnit {
+        display: none;
+    }
+}

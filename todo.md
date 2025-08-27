@@ -1,0 +1,8 @@
+- make the page responsive
+- deploy it somewhere
+  - add a custom domain
+- fix the header so that the text and icon are vertically aligned and sized properly and also to be the same color/opacity
+- update the unit labels to be all caps
+- update race distance labels to be all caps and change Half to Half Marathon - and show both miles and km hover text for both values
+- create a simple overview of all the state in the application
+- dark mode

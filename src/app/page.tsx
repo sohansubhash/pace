@@ -1,95 +1,175 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
+
+import { useState } from "react";
+import {
+  convertPace,
+  findClosestValue,
+  findBoundingPosition,
+  generatePaceOptions,
+  generateSpeedOptions,
+} from "./util";
+import AppHeader from "./components/appheader";
+import PaceCommand from "./components/pacecommand";
+import PaceConverter from "./components/converter";
+import RaceFinishTimes from "./components/racetimes";
 
 export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>src/app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [minPerMile, setMinPerMile] = useState("8.00");
+  const [minPerKm, setMinPerKm] = useState("4.97");
+  const [mph, setMph] = useState("7.5");
+  const [kmh, setKmh] = useState("12.1");
+  const [lastChangedUnit, setLastChangedUnit] = useState<string>("min/mi");
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+  // Store the exact precise values for highlights
+  const [preciseMinPerMile, setPreciseMinPerMile] = useState(8.0);
+  const [preciseMinPerKm, setPreciseMinPerKm] = useState(4.97);
+  const [preciseMph, setPreciseMph] = useState(7.5);
+  const [preciseKmh, setPreciseKmh] = useState(12.1);
+
+  const minMileOptions = generatePaceOptions(4, 15);
+  const minKmOptions = generatePaceOptions(2.5, 9);
+  const mphOptions = generateSpeedOptions(3, 20, 0.1);
+  const kmhOptions = generateSpeedOptions(5, 32, 0.1);
+
+  const handleValueChange = (newValue: string, changedUnit: string) => {
+    const numValue = parseFloat(newValue);
+    setLastChangedUnit(changedUnit);
+
+    if (changedUnit === "min/mi") {
+      setMinPerMile(newValue);
+      setPreciseMinPerMile(numValue);
+
+      // Calculate precise conversions
+      const preciseMinKmValue = convertPace(numValue, "min/mi", "min/km");
+      const preciseMphValue = convertPace(numValue, "min/mi", "mph");
+      const preciseKmhValue = convertPace(numValue, "min/mi", "kmh");
+
+      setPreciseMinPerKm(preciseMinKmValue);
+      setPreciseMph(preciseMphValue);
+      setPreciseKmh(preciseKmhValue);
+
+      // Set wheel positions to bounding discrete values for precise display
+      setMinPerKm(findBoundingPosition(preciseMinKmValue, minKmOptions));
+      setMph(findBoundingPosition(preciseMphValue, mphOptions));
+      setKmh(findBoundingPosition(preciseKmhValue, kmhOptions));
+    } else if (changedUnit === "min/km") {
+      setMinPerKm(newValue);
+      setPreciseMinPerKm(numValue);
+
+      // Calculate precise conversions
+      const preciseMinMileValue = convertPace(numValue, "min/km", "min/mi");
+      const preciseMphValue = convertPace(numValue, "min/km", "mph");
+      const preciseKmhValue = convertPace(numValue, "min/km", "kmh");
+
+      setPreciseMinPerMile(preciseMinMileValue);
+      setPreciseMph(preciseMphValue);
+      setPreciseKmh(preciseKmhValue);
+
+      // Set wheel positions to bounding discrete values for precise display
+      setMinPerMile(findBoundingPosition(preciseMinMileValue, minMileOptions));
+      setMph(findBoundingPosition(preciseMphValue, mphOptions));
+      setKmh(findBoundingPosition(preciseKmhValue, kmhOptions));
+    } else if (changedUnit === "mph") {
+      setMph(newValue);
+      setPreciseMph(numValue);
+
+      // Calculate precise conversions
+      const preciseMinMileValue = convertPace(numValue, "mph", "min/mi");
+      const preciseMinKmValue = convertPace(numValue, "mph", "min/km");
+      const preciseKmhValue = convertPace(numValue, "mph", "kmh");
+
+      setPreciseMinPerMile(preciseMinMileValue);
+      setPreciseMinPerKm(preciseMinKmValue);
+      setPreciseKmh(preciseKmhValue);
+
+      // Set wheel positions to bounding discrete values for precise display
+      setMinPerMile(findBoundingPosition(preciseMinMileValue, minMileOptions));
+      setMinPerKm(findBoundingPosition(preciseMinKmValue, minKmOptions));
+      setKmh(findBoundingPosition(preciseKmhValue, kmhOptions));
+    } else if (changedUnit === "kmh") {
+      setKmh(newValue);
+      setPreciseKmh(numValue);
+
+      // Calculate precise conversions
+      const preciseMinMileValue = convertPace(numValue, "kmh", "min/mi");
+      const preciseMinKmValue = convertPace(numValue, "kmh", "min/km");
+      const preciseMphValue = convertPace(numValue, "kmh", "mph");
+
+      setPreciseMinPerMile(preciseMinMileValue);
+      setPreciseMinPerKm(preciseMinKmValue);
+      setPreciseMph(preciseMphValue);
+
+      // Set wheel positions to bounding discrete values for precise display
+      setMinPerMile(findBoundingPosition(preciseMinMileValue, minMileOptions));
+      setMinPerKm(findBoundingPosition(preciseMinKmValue, minKmOptions));
+      setMph(findBoundingPosition(preciseMphValue, mphOptions));
+    }
+  };
+
+  const handlePreciseUpdate = (preciseMinPerMileValue: number) => {
+    setLastChangedUnit("min/mi");
+    setPreciseMinPerMile(preciseMinPerMileValue);
+
+    // Calculate all precise conversions
+    const preciseMinKmValue = convertPace(
+      preciseMinPerMileValue,
+      "min/mi",
+      "min/km",
+    );
+    const preciseMphValue = convertPace(
+      preciseMinPerMileValue,
+      "min/mi",
+      "mph",
+    );
+    const preciseKmhValue = convertPace(
+      preciseMinPerMileValue,
+      "min/mi",
+      "kmh",
+    );
+
+    setPreciseMinPerKm(preciseMinKmValue);
+    setPreciseMph(preciseMphValue);
+    setPreciseKmh(preciseKmhValue);
+
+    // Update display values with bounding positions (active wheel gets exact value)
+    setMinPerMile(findClosestValue(preciseMinPerMileValue, minMileOptions));
+    setMinPerKm(findBoundingPosition(preciseMinKmValue, minKmOptions));
+    setMph(findBoundingPosition(preciseMphValue, mphOptions));
+    setKmh(findBoundingPosition(preciseKmhValue, kmhOptions));
+  };
+
+  return (
+    <>
+      <AppHeader />
+      <div
+        style={{
+          padding: "20px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "24px",
+        }}
+      >
+        <PaceCommand onCommandUpdate={handlePreciseUpdate} />
+        
+        <PaceConverter
+          minPerMile={minPerMile}
+          minPerKm={minPerKm}
+          mph={mph}
+          kmh={kmh}
+          preciseMinPerMile={preciseMinPerMile}
+          preciseMinPerKm={preciseMinPerKm}
+          preciseMph={preciseMph}
+          preciseKmh={preciseKmh}
+          lastChangedUnit={lastChangedUnit}
+          onValueChange={handleValueChange}
+        />
+
+        <RaceFinishTimes
+          minPerMile={preciseMinPerMile.toFixed(3)}
+          onPreciseUpdate={handlePreciseUpdate}
+        />
+      </div>
+    </>
   );
 }

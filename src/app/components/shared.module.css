@@ -1,0 +1,43 @@
+/* shared.module.css - Component-specific styles using global variables */
+
+.headerContainer {
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    background-color: var(--card-background);
+    box-shadow: var(--shadow);
+    width: 100%;
+    max-width: 900px;
+    overflow: hidden;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.sectionHeader {
+    font-size: var(--header-size);
+    font-weight: var(--header-weight);
+    color: var(--header-color);
+    padding: 20px 20px 15px 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background-color: var(--card-background);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.2s ease;
+}
+
+.headerIcon {
+    width: 16px;
+    height: 16px;
+    opacity: 0.6;
+    flex-shrink: 0;
+    filter: none;
+    transition: filter 0.2s ease;
+}
+
+[data-theme="dark"] .headerIcon {
+    filter: brightness(1.5) contrast(0.8);
+}

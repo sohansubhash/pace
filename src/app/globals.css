@@ -1,42 +1,96 @@
+/* globals.css - Global theme colors, typography, and base styles only */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+    /* Theme Colors */
+    --background: #ffffff;
+    --foreground: #171717;
+    --card-background: #ffffff;
+    --border-color: #e4e4e7;
+    --border-light: #f0f0f0;
+    --text-muted: #6b7280;
+    --text-secondary: #374151;
+    --highlight-bg: #f4f4f5;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --dot-color: rgba(0, 0, 0, 0.05);
+
+    /* Button Colors */
+    --button-bg: #ffffff;
+    --button-hover-bg: #f8f9fa;
+    --button-hover-border: #d1d5db;
+
+    /* Typography System */
+    --font-mono:
+        var(--font-geist-mono), "SF Mono", Monaco, "Cascadia Code",
+        "Roboto Mono", Consolas, "Courier New", monospace;
+
+    /* Header styles */
+    --header-color: var(--text-muted);
+    --header-size: 0.9rem;
+    --header-weight: 600;
+
+    /* Time value styles (highlighted pace, race times) */
+    --time-value-color: var(--text-secondary);
+    --time-value-size: 1.1rem;
+    --time-value-weight: 500;
+
+    /* Label styles (race titles, unit labels) */
+    --label-color: var(--text-muted);
+    --label-size: 0.8rem;
+    --label-weight: 500;
+
+    /* Inline unit styles */
+    --inline-unit-color: var(--text-muted);
+    --inline-unit-size: 0.75rem;
+    --inline-unit-weight: 400;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
+[data-theme="dark"] {
+    /* Dark Theme Colors */
     --background: #0a0a0a;
     --foreground: #ededed;
-  }
+    --card-background: #1a1a1a;
+    --border-color: #404040;
+    --border-light: #333333;
+    --text-muted: #a1a1aa;
+    --text-secondary: #d4d4d8;
+    --highlight-bg: #262626;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(255, 255, 255, 0.1);
+    --dot-color: rgba(255, 255, 255, 0.03);
+
+    /* Dark Theme Button Colors */
+    --button-bg: #1f2937;
+    --button-hover-bg: #374151;
+    --button-hover-border: #6b7280;
 }
 
+/* Global Base Styles */
 html,
 body {
-  max-width: 100vw;
-  overflow-x: hidden;
+    max-width: 100vw;
+    overflow-x: hidden;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    color: var(--foreground);
+    background: var(--background);
+    font-family: var(--font-geist-mono), "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-image: radial-gradient(var(--dot-color) 1px, transparent 1px);
+    background-size: 10px 10px;
+    background-position: center;
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        background-image 0.2s ease;
 }
 
 * {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
 }
 
 a {
-  color: inherit;
-  text-decoration: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+    color: inherit;
+    text-decoration: none;
 }

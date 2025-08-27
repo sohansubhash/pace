@@ -1,0 +1,235 @@
+/* singlewheelpicker.module.css - Individual wheel picker styling */
+
+.pickerWrapper {
+    position: relative;
+    flex: 1;
+}
+
+/* Complete wheel picker styling with masking */
+.pickerWrapper :global([data-rwp]) {
+    position: relative;
+    overflow: hidden;
+    flex: 1;
+    cursor: default;
+
+    /* Gradient masking for fade effect */
+    -webkit-mask-image: linear-gradient(
+        to bottom,
+        transparent 0%,
+        black 20%,
+        black 80%,
+        transparent 100%
+    );
+    mask-image: linear-gradient(
+        to bottom,
+        transparent 0%,
+        black 20%,
+        black 80%,
+        transparent 100%
+    );
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+}
+
+.pickerWrapper :global([data-rwp-highlight-wrapper]) {
+    position: absolute;
+    overflow: hidden;
+    top: 50%;
+    width: calc(100% - 8px);
+    left: 4px;
+    transform: translateY(-50%);
+    background-color: transparent;
+}
+
+.pickerWrapper :global([data-rwp-highlight-list]) {
+    position: absolute;
+    width: 100%;
+}
+
+.pickerWrapper :global([data-rwp-options]) {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    display: block;
+    width: 100%;
+    height: 0;
+    margin: 0 auto;
+    -webkit-font-smoothing: subpixel-antialiased;
+    will-change: transform;
+    backface-visibility: hidden;
+    transform-style: preserve-3d;
+}
+
+.pickerWrapper :global([data-rwp-option]) {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    -webkit-font-smoothing: subpixel-antialiased;
+    will-change: visibility;
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--text-muted);
+    transition: color 0.2s ease;
+
+    /* Prevent text overflow and wrapping */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pickerWrapper :global([data-rwp-option]) {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    -webkit-font-smoothing: subpixel-antialiased;
+    will-change: visibility;
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--text-muted);
+    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* Prevent text overflow and wrapping */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pickerWrapper :global([data-rwp-highlight-item]) {
+    font-weight: var(--time-value-weight);
+    /* font-size: var(--time-value-size); -- Removed: was causing double text rendering */
+    color: var(--time-value-color);
+    position: relative;
+    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* Prevent text overflow and wrapping */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Precise value overlay that sits on top of the highlight area */
+.preciseOverlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-weight: var(--time-value-weight);
+    color: var(--time-value-color);
+    background-color: var(--highlight-bg);
+    padding: 4px 8px;
+    border-radius: 0.375rem;
+    z-index: 20;
+    pointer-events: none;
+    white-space: nowrap;
+    transition: 
+        color 0.2s ease,
+        background-color 0.2s ease;
+    border: 1px solid transparent;
+    min-width: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Unit labels - positioned absolutely to prevent text duplication */
+.pickerWrapper[data-unit="MIN/MI"] :global([data-rwp-highlight-item])::after {
+    content: " MIN/MI";
+    color: var(--inline-unit-color);
+    font-weight: var(--inline-unit-weight);
+    font-size: var(--inline-unit-size);
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-left: 30px;
+    white-space: nowrap;
+    transition: color 0.2s ease;
+}
+
+.pickerWrapper[data-unit="MIN/KM"] :global([data-rwp-highlight-item])::after {
+    content: " MIN/KM";
+    color: var(--inline-unit-color);
+    font-weight: var(--inline-unit-weight);
+    font-size: var(--inline-unit-size);
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-left: 30px;
+    white-space: nowrap;
+    transition: color 0.2s ease;
+}
+
+.pickerWrapper[data-unit="MPH"] :global([data-rwp-highlight-item])::after {
+    content: " MPH";
+    color: var(--inline-unit-color);
+    font-weight: var(--inline-unit-weight);
+    font-size: var(--inline-unit-size);
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-left: 25px;
+    white-space: nowrap;
+    transition: color 0.2s ease;
+}
+
+.pickerWrapper[data-unit="KM/H"] :global([data-rwp-highlight-item])::after {
+    content: " KM/H";
+    color: var(--inline-unit-color);
+    font-weight: var(--inline-unit-weight);
+    font-size: var(--inline-unit-size);
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-left: 30px;
+    white-space: nowrap;
+    transition: color 0.2s ease;
+}
+
+/* Dashed dividers between pickers */
+.pickerWrapper:nth-child(1)::after,
+.pickerWrapper:nth-child(2)::after,
+.pickerWrapper:nth-child(3)::after {
+    content: "";
+    position: absolute;
+    top: 15%;
+    right: 0;
+    bottom: 15%;
+    width: 1px;
+    background-image: repeating-linear-gradient(
+        to bottom,
+        var(--border-color) 0,
+        var(--border-color) 4px,
+        transparent 4px,
+        transparent 8px
+    );
+    z-index: 2;
+    pointer-events: none;
+    transition: background-image 0.2s ease;
+}
+
+/* Hide unit labels on mobile - they'll show in the mobile labels section instead */
+@media (max-width: 640px) {
+    .pickerWrapper[data-unit="MIN/MI"]
+        :global([data-rwp-highlight-item])::after,
+    .pickerWrapper[data-unit="MIN/KM"]
+        :global([data-rwp-highlight-item])::after,
+    .pickerWrapper[data-unit="MPH"] :global([data-rwp-highlight-item])::after,
+    .pickerWrapper[data-unit="KM/H"] :global([data-rwp-highlight-item])::after {
+        display: none;
+    }
+}

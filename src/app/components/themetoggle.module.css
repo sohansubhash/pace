@@ -1,0 +1,35 @@
+.themeToggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border-color);
+    background-color: var(--button-bg);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.themeToggle:hover {
+    background-color: var(--button-hover-bg);
+    border-color: var(--button-hover-border);
+}
+
+.themeToggle:active {
+    transform: scale(0.95);
+}
+
+.icon {
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+}
+
+.themeToggle:hover .icon {
+    opacity: 1;
+}
+
+.placeholder {
+    width: 40px;
+    height: 40px;
+}

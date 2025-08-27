@@ -1,0 +1,100 @@
+.raceGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    padding: 0;
+    border-radius: 0 0 0.75rem 0.75rem;
+    border-top: 1px solid var(--border-color);
+    overflow: hidden;
+    transition: border-color 0.2s ease;
+}
+
+.raceItem {
+    padding: 20px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 80px;
+    border-right: 1px solid var(--border-light);
+    border-bottom: 1px solid var(--border-light);
+    background-color: transparent;
+}
+
+.raceItem:hover {
+    background-color: var(--highlight-bg);
+}
+
+.raceItem:nth-child(even) {
+    border-right: none;
+}
+
+.raceItem:nth-child(n + 3) {
+    border-bottom: none;
+}
+
+.raceLabel {
+    font-weight: var(--label-weight);
+    font-size: var(--label-size);
+    color: var(--label-color);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.raceTime {
+    font-size: var(--time-value-size);
+    font-weight: var(--time-value-weight);
+    color: var(--time-value-color);
+}
+
+.raceTimeInput {
+    border: none;
+    background: transparent;
+    font-size: var(--time-value-size);
+    font-weight: var(--time-value-weight);
+    color: var(--time-value-color);
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    outline: none;
+    font-family: var(--font-geist-mono), "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace;
+}
+
+.raceTimeInput:focus {
+    outline: none;
+    border: none;
+    box-shadow: none;
+}
+
+.raceTimeInput::placeholder {
+    color: var(--text-muted);
+    opacity: 0.6;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 640px) {
+    .raceItem {
+        padding: 16px;
+        min-height: 70px;
+    }
+
+    .raceLabel {
+        font-size: calc(var(--label-size) - 0.05rem);
+        margin-bottom: 4px;
+    }
+
+    .raceTime,
+    .raceTimeInput {
+        font-size: calc(var(--time-value-size) - 0.1rem);
+    }
+}
+
+/* Tablet */
+@media (min-width: 641px) and (max-width: 1024px) {
+    .raceItem {
+        padding: 18px;
+        min-height: 75px;
+    }
+}

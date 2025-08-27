@@ -1,0 +1,102 @@
+/* Command palette styling */
+.commandContainer {
+  padding: 0 20px 20px 20px;
+}
+
+.commandInput {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  background-color: var(--card-background);
+  color: var(--foreground);
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  outline: none;
+  transition: 
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.commandInput:focus {
+  border-color: var(--text-secondary);
+}
+
+.commandInput::placeholder {
+  color: var(--text-muted);
+  opacity: 0.8;
+}
+
+.commandList {
+  margin-top: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  background-color: var(--card-background);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  max-height: 300px;
+  overflow-y: auto;
+  transition: 
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.commandList [cmdk-group] {
+  padding: 8px 0;
+}
+
+.commandList [cmdk-group]:not(:first-child) {
+  border-top: 1px solid var(--border-light);
+}
+
+.commandList [cmdk-group-heading] {
+  padding: 8px 16px 4px 16px;
+  font-size: var(--label-size);
+  font-weight: var(--label-weight);
+  color: var(--label-color);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.commandList [cmdk-item] {
+  padding: 8px 16px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  color: var(--foreground);
+  transition: 
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.commandList [cmdk-item]:hover,
+.commandList [cmdk-item][data-selected="true"] {
+  background-color: var(--highlight-bg);
+  color: var(--text-secondary);
+}
+
+.commandList [cmdk-item]:active {
+  background-color: var(--highlight-bg);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 640px) {
+  .commandContainer {
+    padding: 0 16px 16px 16px;
+  }
+  
+  .commandInput {
+    padding: 10px 14px;
+    font-size: 0.85rem;
+  }
+  
+  .commandInput::placeholder {
+    font-size: 0.8rem;
+  }
+  
+  .commandList [cmdk-item] {
+    padding: 10px 14px;
+    font-size: 0.85rem;
+  }
+}
