@@ -1,6 +1,3 @@
-"use client";
-
-import Image from "next/image";
 import sharedStyles from "./shared.module.css";
 import styles from "./stateoverview.module.css";
 
@@ -21,12 +18,12 @@ export default function StateOverview({
     <div className={sharedStyles.headerContainer}>
       <div className={sharedStyles.sectionHeader}>
         <span>Current State</span>
-        <Image
+        <img
           src="/info.svg"
           alt="Info"
           className={sharedStyles.headerIcon}
-          width="16"
-          height="16"
+          width={16}
+          height={16}
         />
       </div>
       <div className={styles.stateGrid}>

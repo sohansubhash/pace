@@ -1,6 +1,5 @@
-"use client";
-
 import { useState } from "react";
+import { Helmet, HelmetProvider } from "react-helmet-async";
 import {
   convertPace,
   findClosestValue,
@@ -13,7 +12,7 @@ import PaceCommand from "./components/pacecommand";
 import PaceConverter from "./components/converter";
 import RaceFinishTimes from "./components/racetimes";
 
-export default function Home() {
+export default function App() {
   const [minPerMile, setMinPerMile] = useState("8.00");
   const [minPerKm, setMinPerKm] = useState("4.97");
   const [mph, setMph] = useState("7.5");
@@ -139,7 +138,12 @@ export default function Home() {
   };
 
   return (
-    <>
+    <HelmetProvider>
+      <Helmet>
+        <title>Pace Converter</title>
+        <meta name="description" content="Running pace converter tool" />
+      </Helmet>
+
       <AppHeader />
       <div
         style={{
@@ -151,7 +155,7 @@ export default function Home() {
         }}
       >
         <PaceCommand onCommandUpdate={handlePreciseUpdate} />
-        
+
         <PaceConverter
           minPerMile={minPerMile}
           minPerKm={minPerKm}
@@ -170,6 +174,6 @@ export default function Home() {
           onPreciseUpdate={handlePreciseUpdate}
         />
       </div>
-    </>
+    </HelmetProvider>
   );
 }

@@ -1,5 +1,4 @@
-"use client";
-
+import { WheelPickerWrapper } from "@ncdai/react-wheel-picker";
 import styles from "./wheelpickercontainer.module.css";
 import SingleWheelPicker from "./singlewheelpicker";
 
@@ -9,6 +8,8 @@ interface WheelPickerContainerProps {
     value: string;
     onValueChange: (value: string) => void;
     unit: string;
+    exactValue?: number;
+    isActiveWheel?: boolean;
   }>;
 }
 
@@ -18,15 +19,19 @@ export default function WheelPickerContainer({
   return (
     <>
       <div className={styles.container}>
-        {pickers.map((picker, index) => (
-          <SingleWheelPicker
-            key={index}
-            options={picker.options}
-            value={picker.value}
-            onValueChange={picker.onValueChange}
-            unit={picker.unit}
-          />
-        ))}
+        <WheelPickerWrapper>
+          {pickers.map((picker, index) => (
+            <SingleWheelPicker
+              key={index}
+              options={picker.options}
+              value={picker.value}
+              onValueChange={picker.onValueChange}
+              unit={picker.unit}
+              exactValue={picker.exactValue}
+              isActiveWheel={picker.isActiveWheel}
+            />
+          ))}
+        </WheelPickerWrapper>
       </div>
       <div className={styles.mobileLabels}>
         <div className={styles.mobileLabelsGrid}>

@@ -1,6 +1,3 @@
-"use client";
-
-import Image from "next/image";
 import {
   generatePaceOptions,
   generateSpeedOptions,
@@ -149,12 +146,12 @@ export default function PaceConverter({
     <div className={sharedStyles.headerContainer}>
       <div className={sharedStyles.sectionHeader}>
         <span>Pace Converter</span>
-        <Image
+        <img
           src="/stopwatch.svg"
           alt="Stopwatch"
           className={sharedStyles.headerIcon}
-          width="16"
-          height="16"
+          width={16}
+          height={16}
         />
       </div>
       <WheelPickerContainer pickers={pickers} />

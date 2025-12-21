@@ -1,5 +1,3 @@
-"use client";
-
 import { WheelPicker } from "@ncdai/react-wheel-picker";
 import { formatPreciseValue, isExactMatch } from "../util";
 import styles from "./singlewheelpicker.module.css";

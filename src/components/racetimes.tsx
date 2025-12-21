@@ -1,6 +1,3 @@
-"use client";
-
-import Image from "next/image";
 import React from "react";
 import {
   RACE_DISTANCES,
@@ -24,12 +21,12 @@ export default function RaceFinishTimes({
     <div className={sharedStyles.headerContainer}>
       <div className={sharedStyles.sectionHeader}>
         <span>Race Finish Times</span>
-        <Image
+        <img
           src="/flag.svg"
           alt="Flag"
           className={sharedStyles.headerIcon}
-          width="16"
-          height="16"
+          width={16}
+          height={16}
         />
       </div>
       <div className={styles.raceGrid}>

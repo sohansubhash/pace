@@ -1,8 +1,5 @@
-"use client";
-
 import { Command } from "cmdk";
 import { useState, useEffect, useRef } from "react";
-import Image from "next/image";
 import {
   RACE_DISTANCES,
   parseTimeInput,
@@ -228,7 +225,7 @@ export default function PaceCommand({ onCommandUpdate }: PaceCommandProps) {
     <div className={sharedStyles.headerContainer}>
       <div className={sharedStyles.sectionHeader}>
         <span>Quick Entry</span>
-        <Image
+        <img
           src="/mag.svg"
           alt="Search"
           className={sharedStyles.headerIcon}
