@@ -1,3 +1,4 @@
+import { Timer } from "@phosphor-icons/react";
 import {
   generatePaceOptions,
   generateSpeedOptions,
@@ -146,12 +147,11 @@ export default function PaceConverter({
     <div className={sharedStyles.headerContainer}>
       <div className={sharedStyles.sectionHeader}>
         <span>Pace Converter</span>
-        <img
-          src="/stopwatch.svg"
-          alt="Stopwatch"
+        <Timer
+          size={16}
+          weight="regular"
+          color="currentColor"
           className={sharedStyles.headerIcon}
-          width={16}
-          height={16}
         />
       </div>
       <WheelPickerContainer pickers={pickers} />

@@ -1,5 +1,6 @@
 import { Command } from "cmdk";
 import { useState, useEffect, useRef } from "react";
+import { MagnifyingGlass } from "@phosphor-icons/react";
 import {
   RACE_DISTANCES,
   parseTimeInput,
@@ -225,12 +226,11 @@ export default function PaceCommand({ onCommandUpdate }: PaceCommandProps) {
     <div className={sharedStyles.headerContainer}>
       <div className={sharedStyles.sectionHeader}>
         <span>Quick Entry</span>
-        <img
-          src="/mag.svg"
-          alt="Search"
+        <MagnifyingGlass
+          size={16}
+          weight="regular"
+          color="currentColor"
           className={sharedStyles.headerIcon}
-          width={16}
-          height={16}
         />
       </div>
 

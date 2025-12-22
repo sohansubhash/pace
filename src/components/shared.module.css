@@ -34,10 +34,6 @@
     height: 16px;
     opacity: 0.6;
     flex-shrink: 0;
-    filter: none;
-    transition: filter 0.2s ease;
-}
-
-[data-theme="dark"] .headerIcon {
-    filter: brightness(1.5) contrast(0.8);
+    color: var(--header-color);
+    transition: opacity 0.2s ease;
 }

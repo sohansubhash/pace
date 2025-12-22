@@ -1,4 +1,5 @@
 import React from "react";
+import { FlagCheckered } from "@phosphor-icons/react";
 import {
   RACE_DISTANCES,
   calculateRaceTime,
@@ -21,12 +22,11 @@ export default function RaceFinishTimes({
     <div className={sharedStyles.headerContainer}>
       <div className={sharedStyles.sectionHeader}>
         <span>Race Finish Times</span>
-        <img
-          src="/flag.svg"
-          alt="Flag"
+        <FlagCheckered
+          size={16}
+          weight="regular"
+          color="currentColor"
           className={sharedStyles.headerIcon}
-          width={16}
-          height={16}
         />
       </div>
       <div className={styles.raceGrid}>
