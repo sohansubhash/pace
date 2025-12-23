@@ -1,5 +1,5 @@
 import { WheelPicker } from "@ncdai/react-wheel-picker";
-import { formatPreciseValue, isExactMatch } from "../util";
+import { formatPreciseValue } from "../util";
 import styles from "./singlewheelpicker.module.css";
 
 interface SingleWheelPickerProps {
@@ -27,9 +27,6 @@ export default function SingleWheelPicker({
     ? formatPreciseValue(exactValue!, unit)
     : undefined;
   
-  // Check if the exact value matches a wheel option
-  const isExact = exactValue !== undefined && isExactMatch(exactValue, options);
-
   console.log(`🎯 ${unit}: shouldShowPrecise=${shouldShowPreciseValue}, exactValue=${exactValue}, preciseDisplay=${preciseDisplayValue}`);
 
   return (

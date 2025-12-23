@@ -4,7 +4,6 @@ import {
   generateSpeedOptions,
   findClosestValue,
   findBoundingPosition,
-  type PickerOption,
 } from "../util";
 import sharedStyles from "./shared.module.css";
 import WheelPickerContainer from "./wheelpickercontainer";

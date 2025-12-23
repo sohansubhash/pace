@@ -1,4 +1,14 @@
 /* globals.css - Global theme colors, typography, and base styles only */
+
+/* Commit Mono Font */
+@font-face {
+    font-family: 'Commit Mono';
+    src: url('/CommitMono-Regular.otf') format('opentype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
 :root {
     /* Theme Colors */
     --background: #ffffff;
@@ -19,7 +29,7 @@
 
     /* Typography System */
     --font-mono:
-        var(--font-geist-mono), "SF Mono", Monaco, "Cascadia Code",
+        "Commit Mono", "SF Mono", Monaco, "Cascadia Code",
         "Roboto Mono", Consolas, "Courier New", monospace;
 
     /* Header styles */
@@ -72,7 +82,8 @@ body {
 body {
     color: var(--foreground);
     background: var(--background);
-    font-family: var(--font-geist-mono), "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace;
+    font-family: var(--font-mono);
+    font-weight: 400;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background-image: radial-gradient(var(--dot-color) 1px, transparent 1px);

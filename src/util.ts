@@ -1,5 +1,3 @@
-import type { WheelPickerOption } from "@ncdai/react-wheel-picker";
-
 export const MILES_TO_KM = 1.609344;
 
 // Define our own picker option type that matches what components expect
@@ -266,7 +264,7 @@ export const RACE_DISTANCES = {
   MARATHON: 26.2,
 } as const;
 
-export const getRaceTooltip = (raceType: string, miles: number): string => {
+export const getRaceTooltip = (_raceType: string, miles: number): string => {
   const km = (miles * MILES_TO_KM).toFixed(1);
   return `${miles} miles / ${km} km`;
 };
@@ -278,24 +276,16 @@ export const findBoundingPosition = (
 ): string => {
   // Find the two options that bound the target value
   let lower = options[0];
-  let upper = options[options.length - 1];
-  
+
   for (let i = 0; i < options.length - 1; i++) {
     const current = parseFloat(options[i].value);
     const next = parseFloat(options[i + 1].value);
-    
+
     if (target >= current && target <= next) {
       lower = options[i];
-      upper = options[i + 1];
       break;
     }
   }
-  
-  const lowerVal = parseFloat(lower.value);
-  const upperVal = parseFloat(upper.value);
-  
-  // Calculate interpolated position (0 = lower, 1 = upper)
-  const ratio = (target - lowerVal) / (upperVal - lowerVal);
   
   // Return the position that represents where the target sits between bounds
   // For wheel positioning, we'll use the lower bound as the wheel position

@@ -1,4 +1,3 @@
-import React from "react";
 import { FlagCheckered } from "@phosphor-icons/react";
 import {
   RACE_DISTANCES,
@@ -15,7 +14,6 @@ interface RaceFinishTimesProps {
 
 export default function RaceFinishTimes({
   minPerMile,
-  onPreciseUpdate,
 }: RaceFinishTimesProps) {
 
   return (
