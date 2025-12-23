@@ -143,62 +143,7 @@
     justify-content: center;
 }
 
-/* Unit labels - positioned absolutely to prevent text duplication */
-.pickerWrapper[data-unit="MIN/MI"] :global([data-rwp-highlight-item])::after {
-    content: " MIN/MI";
-    color: var(--inline-unit-color);
-    font-weight: var(--inline-unit-weight);
-    font-size: var(--inline-unit-size);
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translateY(-50%);
-    margin-left: 30px;
-    white-space: nowrap;
-    transition: color 0.2s ease;
-}
-
-.pickerWrapper[data-unit="MIN/KM"] :global([data-rwp-highlight-item])::after {
-    content: " MIN/KM";
-    color: var(--inline-unit-color);
-    font-weight: var(--inline-unit-weight);
-    font-size: var(--inline-unit-size);
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translateY(-50%);
-    margin-left: 30px;
-    white-space: nowrap;
-    transition: color 0.2s ease;
-}
-
-.pickerWrapper[data-unit="MPH"] :global([data-rwp-highlight-item])::after {
-    content: " MPH";
-    color: var(--inline-unit-color);
-    font-weight: var(--inline-unit-weight);
-    font-size: var(--inline-unit-size);
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translateY(-50%);
-    margin-left: 25px;
-    white-space: nowrap;
-    transition: color 0.2s ease;
-}
-
-.pickerWrapper[data-unit="KM/H"] :global([data-rwp-highlight-item])::after {
-    content: " KM/H";
-    color: var(--inline-unit-color);
-    font-weight: var(--inline-unit-weight);
-    font-size: var(--inline-unit-size);
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translateY(-50%);
-    margin-left: 30px;
-    white-space: nowrap;
-    transition: color 0.2s ease;
-}
+/* Unit labels removed - now displayed below the wheels for all screen sizes */
 
 /* Dashed dividers between pickers */
 .pickerWrapper:nth-child(1)::after,
@@ -222,14 +167,3 @@
     transition: background-image 0.2s ease;
 }
 
-/* Hide unit labels on mobile - they'll show in the mobile labels section instead */
-@media (max-width: 640px) {
-    .pickerWrapper[data-unit="MIN/MI"]
-        :global([data-rwp-highlight-item])::after,
-    .pickerWrapper[data-unit="MIN/KM"]
-        :global([data-rwp-highlight-item])::after,
-    .pickerWrapper[data-unit="MPH"] :global([data-rwp-highlight-item])::after,
-    .pickerWrapper[data-unit="KM/H"] :global([data-rwp-highlight-item])::after {
-        display: none;
-    }
-}

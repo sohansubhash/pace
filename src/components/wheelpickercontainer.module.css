@@ -35,9 +35,9 @@
     transition: background-color 0.2s ease;
 }
 
-/* Mobile labels */
+/* Unit labels - displayed below wheels for all screen sizes */
 .mobileLabels {
-    display: none;
+    display: block;
     background-color: var(--card-background);
     border-top: 1px solid var(--border-light);
     padding: 12px 4px 16px 4px;
@@ -83,8 +83,3 @@
     transition: background-image 0.2s ease;
 }
 
-@media (max-width: 640px) {
-    .mobileLabels {
-        display: block;
-    }
-}
