@@ -33,6 +33,12 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+html {
+  min-width: 320px;
+  min-height: 100%;
+  background: var(--page-bg);
+}
+
 :root[data-theme="dark"] {
   --page-bg: radial-gradient(circle at top, #263547 0, #151e2a 58%, #0d131c 100%);
   --text: #d7e0ea;
@@ -95,8 +101,9 @@
 
 body {
   min-width: 320px;
-  min-height: 100vh;
+  min-height: 100%;
   margin: 0;
+  background: var(--page-bg);
 }
 
 button,
@@ -107,7 +114,7 @@ fieldset {
 
 .page-shell {
   display: grid;
-  min-height: 100vh;
+  min-height: 100svh;
   align-content: center;
   justify-items: center;
   gap: 16px;

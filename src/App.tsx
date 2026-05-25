@@ -13,6 +13,7 @@ type PaceEditorProps = {
   secondsPerMeter: number;
   activeUnit: PaceUnit | null;
   onFocus: (unit: PaceUnit) => void;
+  onBlur: () => void;
   onChange: (unit: PaceUnit, paceSeconds: number) => void;
 };
 
@@ -23,6 +24,7 @@ type FinishTimeEditorProps = {
   secondsPerMeter: number;
   onChange: (meters: number, finishSeconds: number) => void;
   onFocus: (race: string) => void;
+  onBlur: () => void;
 };
 
 type ThemeMode = "system" | "light" | "dark";
@@ -56,6 +58,7 @@ function PaceEditor({
   secondsPerMeter,
   activeUnit,
   onFocus,
+  onBlur,
   onChange,
 }: PaceEditorProps) {
   const paceSeconds = secondsPerMeterToPaceSeconds(secondsPerMeter, unit);
@@ -100,6 +103,7 @@ function PaceEditor({
 
     setDraftMinutes(formattedMinutes);
     setDraftSeconds(formattedSeconds);
+    onBlur();
   }
 
   return (
@@ -203,6 +207,7 @@ function FinishTimeEditor({
   secondsPerMeter,
   onChange,
   onFocus,
+  onBlur,
 }: FinishTimeEditorProps) {
   const finishParts = secondsToFinishParts(secondsPerMeter * meters);
   const formattedHours = formatTwoDigits(finishParts.hours);
@@ -267,6 +272,7 @@ function FinishTimeEditor({
     setDraftHours(formattedHours);
     setDraftMinutes(formattedMinutes);
     setDraftSeconds(formattedSeconds);
+    onBlur();
   }
 
   return (
@@ -327,6 +333,7 @@ export function App() {
   }, [themeMode]);
 
   function updatePace(unit: PaceUnit, paceSeconds: number) {
+    setActiveRace(null);
     setSecondsPerMeter(paceSecondsToSecondsPerMeter(paceSeconds, unit));
   }
 
@@ -337,11 +344,13 @@ export function App() {
 
   function updateSharedSlider(value: string) {
     setActiveUnit(null);
+    setActiveRace(null);
     setSecondsPerMeter(sliderRange.max + sliderRange.min - Number(value));
   }
 
   function adjustSecondsPerMeter(secondsDelta: number) {
     setActiveUnit(null);
+    setActiveRace(null);
     setSecondsPerMeter((currentSecondsPerMeter) => {
       return Math.min(
         sliderRange.max,
@@ -386,6 +395,7 @@ export function App() {
             secondsPerMeter={secondsPerMeter}
             unit="mile"
             onChange={updatePace}
+            onBlur={() => setActiveUnit(null)}
             onFocus={setActiveUnit}
           />
 
@@ -396,6 +406,7 @@ export function App() {
             secondsPerMeter={secondsPerMeter}
             unit="kilometer"
             onChange={updatePace}
+            onBlur={() => setActiveUnit(null)}
             onFocus={setActiveUnit}
           />
         </div>
@@ -443,6 +454,7 @@ export function App() {
                       meters={race.meters}
                       secondsPerMeter={secondsPerMeter}
                       onChange={updatePaceFromFinishTime}
+                      onBlur={() => setActiveRace(null)}
                       onFocus={setActiveRace}
                     />
                   </div>
