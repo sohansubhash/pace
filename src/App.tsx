@@ -29,8 +29,19 @@ type FinishTimeEditorProps = {
 
 type ThemeMode = "system" | "light" | "dark";
 type SelectedRace = {
+  category: RaceTab;
   name: string;
   meters: number;
+};
+type PredictionSnapshot = {
+  race: SelectedRace;
+  sourceSeconds: number;
+};
+type RaceDetailTab = "Predictions" | "Performance" | "Records";
+type RaceDetailSnapshot = {
+  id: string;
+  activeTab: RaceDetailTab;
+  predictionSnapshot: PredictionSnapshot;
 };
 
 const themeChromeColors = {
@@ -194,6 +205,25 @@ const raceCategories = {
 
 type RaceCategory = keyof typeof raceCategories;
 const raceCategoryNames = Object.keys(raceCategories) as RaceCategory[];
+type RaceTab = RaceCategory | "Custom";
+const raceTabNames = [...raceCategoryNames, "Custom"] as RaceTab[];
+
+function cleanDecimalValue(value: string): string {
+  const cleanedValue = value.replace(/[^\d.]/g, "");
+  const [whole = "", ...decimalParts] = cleanedValue.split(".");
+
+  return decimalParts.length === 0
+    ? whole
+    : `${whole}.${decimalParts.join("")}`;
+}
+
+function formatDecimal(value: number, maxFractionDigits: number): string {
+  return value.toLocaleString("en-US", {
+    maximumFractionDigits: maxFractionDigits,
+    minimumFractionDigits: 0,
+    useGrouping: false,
+  });
+}
 
 function secondsToFinishParts(totalSeconds: number): {
   hours: number;
@@ -249,15 +279,89 @@ function formatDistance(name: string, meters: number): string {
   return `${kilometers.toFixed(2)} km · ${miles.toFixed(2)} mi`;
 }
 
-function RaceInspector({
-  race,
-  secondsPerMeter,
-  onClose,
+function predictRaceTime({
+  sourceMeters,
+  sourceSeconds,
+  targetMeters,
 }: {
-  race: SelectedRace;
-  secondsPerMeter: number;
-  onClose: () => void;
+  sourceMeters: number;
+  sourceSeconds: number;
+  targetMeters: number;
+}): number {
+  return sourceSeconds * (targetMeters / sourceMeters) ** 1.06;
+}
+
+function RacePredictions({
+  snapshot,
+}: {
+  snapshot: PredictionSnapshot;
 }) {
+  const { race, sourceSeconds } = snapshot;
+
+  return (
+    <section className="race-predictions" aria-label={`${race.name} predictions`}>
+      <p className="prediction-note">
+        Predicted with Riegel&apos;s formula.
+      </p>
+
+      <div className="prediction-grid">
+        {raceCategoryNames.map((category) => (
+          <section className="prediction-group" key={category}>
+            <h4>{category}</h4>
+            <div className="prediction-list">
+              {raceCategories[category].map((target) => {
+                const isSourceRace =
+                  target.name === race.name && target.meters === race.meters;
+
+                return (
+                  <div
+                    className={`prediction-row${isSourceRace ? " source" : ""}`}
+                    key={target.name}
+                  >
+                    <span>{target.name}</span>
+                    <span aria-label={isSourceRace ? "Selected race" : undefined}>
+                      {isSourceRace
+                        ? formatFinishTime(sourceSeconds)
+                        : formatFinishTime(
+                            predictRaceTime({
+                              sourceMeters: race.meters,
+                              sourceSeconds,
+                              targetMeters: target.meters,
+                            }),
+                          )}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function RaceDetailPlaceholder({ children }: { children: string }) {
+  return (
+    <div className="race-detail-placeholder">
+      <span>{children}</span>
+    </div>
+  );
+}
+
+function RaceInspector({
+  activeTab,
+  predictionSnapshot,
+  onClose,
+  onTabChange,
+}: {
+  activeTab: RaceDetailTab;
+  predictionSnapshot: PredictionSnapshot;
+  onClose: () => void;
+  onTabChange: (tab: RaceDetailTab) => void;
+}) {
+  const { race, sourceSeconds } = predictionSnapshot;
+
   return (
     <section className="race-inspector" aria-label={`${race.name} details`}>
       <div className="race-inspector-header">
@@ -276,9 +380,40 @@ function RaceInspector({
         </div>
         <div>
           <dt>Finish Time</dt>
-          <dd>{formatFinishTime(secondsPerMeter * race.meters)}</dd>
+          <dd>{formatFinishTime(sourceSeconds)}</dd>
         </div>
       </dl>
+
+      <div className="race-detail-tabs" role="tablist" aria-label="Race detail tabs">
+        {(["Predictions", "Performance", "Records"] as RaceDetailTab[]).map(
+          (tab) => (
+            <button
+              aria-selected={activeTab === tab}
+              className={activeTab === tab ? "active" : ""}
+              key={tab}
+              role="tab"
+              type="button"
+              onClick={() => onTabChange(tab)}
+            >
+              {tab}
+            </button>
+          ),
+        )}
+      </div>
+
+      {activeTab === "Predictions" && (
+        <RacePredictions snapshot={predictionSnapshot} />
+      )}
+      {activeTab === "Performance" && (
+        <RaceDetailPlaceholder>
+          Performance scoring requires age grading data.
+        </RaceDetailPlaceholder>
+      )}
+      {activeTab === "Records" && (
+        <RaceDetailPlaceholder>
+          World records require curated source data.
+        </RaceDetailPlaceholder>
+      )}
     </section>
   );
 }
@@ -405,12 +540,100 @@ function FinishTimeEditor({
   );
 }
 
+function CustomDistanceEditor({
+  meters,
+  onChange,
+}: {
+  meters: number;
+  onChange: (meters: number) => void;
+}) {
+  const formattedKilometers = formatDecimal(meters / 1000, 3);
+  const formattedMiles = formatDecimal(meters / 1609.344, 3);
+  const [activeUnit, setActiveUnit] = useState<"kilometer" | "mile" | null>(null);
+  const [draftKilometers, setDraftKilometers] = useState(formattedKilometers);
+  const [draftMiles, setDraftMiles] = useState(formattedMiles);
+
+  useEffect(() => {
+    if (activeUnit !== "kilometer") {
+      setDraftKilometers(formattedKilometers);
+    }
+
+    if (activeUnit !== "mile") {
+      setDraftMiles(formattedMiles);
+    }
+  }, [activeUnit, formattedKilometers, formattedMiles]);
+
+  function updateKilometers(value: string) {
+    const nextValue = cleanDecimalValue(value);
+    const parsedValue = Number.parseFloat(nextValue);
+
+    setDraftKilometers(nextValue);
+    setActiveUnit("kilometer");
+
+    if (Number.isFinite(parsedValue) && parsedValue > 0) {
+      onChange(parsedValue * 1000);
+    }
+  }
+
+  function updateMiles(value: string) {
+    const nextValue = cleanDecimalValue(value);
+    const parsedValue = Number.parseFloat(nextValue);
+
+    setDraftMiles(nextValue);
+    setActiveUnit("mile");
+
+    if (Number.isFinite(parsedValue) && parsedValue > 0) {
+      onChange(parsedValue * 1609.344);
+    }
+  }
+
+  return (
+    <div className="custom-distance-list" aria-label="Custom distance">
+      <label>
+        <span>Kilometers</span>
+        <input
+          inputMode="decimal"
+          type="text"
+          value={activeUnit === "kilometer" ? draftKilometers : formattedKilometers}
+          onBlur={() => {
+            setDraftKilometers(formattedKilometers);
+            setActiveUnit(null);
+          }}
+          onChange={(event) => updateKilometers(event.target.value)}
+          onFocus={(event) => {
+            setActiveUnit("kilometer");
+            event.currentTarget.select();
+          }}
+        />
+      </label>
+      <label>
+        <span>Miles</span>
+        <input
+          inputMode="decimal"
+          type="text"
+          value={activeUnit === "mile" ? draftMiles : formattedMiles}
+          onBlur={() => {
+            setDraftMiles(formattedMiles);
+            setActiveUnit(null);
+          }}
+          onChange={(event) => updateMiles(event.target.value)}
+          onFocus={(event) => {
+            setActiveUnit("mile");
+            event.currentTarget.select();
+          }}
+        />
+      </label>
+    </div>
+  );
+}
+
 export function App() {
   const [secondsPerMeter, setSecondsPerMeter] = useState(initialSecondsPerMeter);
   const [activeUnit, setActiveUnit] = useState<PaceUnit | null>(null);
   const [activeRace, setActiveRace] = useState<string | null>(null);
-  const [selectedRace, setSelectedRace] = useState<SelectedRace | null>(null);
-  const [raceCategory, setRaceCategory] = useState<RaceCategory>("Road");
+  const [raceDetails, setRaceDetails] = useState<RaceDetailSnapshot[]>([]);
+  const [raceCategory, setRaceCategory] = useState<RaceTab>("Road");
+  const [customMeters, setCustomMeters] = useState(10000);
   const [themeMode, setThemeMode] = useState<ThemeMode>("system");
 
   useEffect(() => {
@@ -468,6 +691,43 @@ export function App() {
     sliderRange.min,
     sliderRange.max,
   );
+  const customRace: SelectedRace = {
+    category: "Custom",
+    name: "Custom Race",
+    meters: customMeters,
+  };
+
+  function updateCustomMeters(nextMeters: number) {
+    setCustomMeters(nextMeters);
+  }
+
+  function selectRace(race: SelectedRace) {
+    setRaceDetails((currentRaceDetails) => [
+      {
+        id: `${race.name}-${race.meters}-${Date.now()}`,
+        activeTab: "Predictions",
+        predictionSnapshot: {
+          race,
+          sourceSeconds: secondsPerMeter * race.meters,
+        },
+      },
+      ...currentRaceDetails,
+    ]);
+  }
+
+  function closeRaceDetail(id: string) {
+    setRaceDetails((currentRaceDetails) =>
+      currentRaceDetails.filter((raceDetail) => raceDetail.id !== id),
+    );
+  }
+
+  function updateRaceDetailTab(id: string, activeTab: RaceDetailTab) {
+    setRaceDetails((currentRaceDetails) =>
+      currentRaceDetails.map((raceDetail) =>
+        raceDetail.id === id ? { ...raceDetail, activeTab } : raceDetail,
+      ),
+    );
+  }
 
   return (
     <main className="page-shell">
@@ -541,22 +801,25 @@ export function App() {
         </div>
       </section>
 
-      {selectedRace && (
-        <section className="app-block" aria-label="Race detail">
+      {raceDetails.map((raceDetail) => (
+        <section className="app-block" aria-label="Race detail" key={raceDetail.id}>
           <RaceInspector
-            race={selectedRace}
-            secondsPerMeter={secondsPerMeter}
-            onClose={() => setSelectedRace(null)}
+            activeTab={raceDetail.activeTab}
+            predictionSnapshot={raceDetail.predictionSnapshot}
+            onClose={() => closeRaceDetail(raceDetail.id)}
+            onTabChange={(activeTab) =>
+              updateRaceDetailTab(raceDetail.id, activeTab)
+            }
           />
         </section>
-      )}
+      ))}
 
       <section className="app-block race-table" aria-labelledby="race-table-title">
         <h2 id="race-table-title" className="sr-only">
           Finish times
         </h2>
         <div className="race-tabs" role="tablist" aria-label="Race categories">
-          {raceCategoryNames.map((category) => (
+          {raceTabNames.map((category) => (
             <button
               aria-selected={raceCategory === category}
               className={raceCategory === category ? "active" : ""}
@@ -570,15 +833,46 @@ export function App() {
           ))}
         </div>
 
-        <div className="race-list">
-          {raceCategories[raceCategory].map((race) => (
+        {raceCategory === "Custom" ? (
+          <>
+            <CustomDistanceEditor
+              meters={customMeters}
+              onChange={updateCustomMeters}
+            />
+            <div className="race-list">
+              <div className="race-row">
+                <button
+                  aria-label="Inspect custom distance"
+                  className="race-info-button"
+                  type="button"
+                  onClick={() => selectRace(customRace)}
+                >
+                  i
+                </button>
+                <span>Custom Race</span>
+                <FinishTimeEditor
+                  activeRace={activeRace}
+                  label="Custom Race"
+                  meters={customMeters}
+                  secondsPerMeter={secondsPerMeter}
+                  onChange={updatePaceFromFinishTime}
+                  onBlur={() => setActiveRace(null)}
+                  onFocus={setActiveRace}
+                />
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="race-list">
+            {raceCategories[raceCategory].map((race) => (
             <div className="race-row" key={race.name}>
               <button
                 aria-label={`Inspect ${race.name}`}
                 className="race-info-button"
                 type="button"
                 onClick={() =>
-                  setSelectedRace({
+                  selectRace({
+                    category: raceCategory,
                     name: race.name,
                     meters: race.meters,
                   })
@@ -597,8 +891,9 @@ export function App() {
                 onFocus={setActiveRace}
               />
             </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </section>
     </main>
   );

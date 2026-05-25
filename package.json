@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "scrape:running-level": "node scripts/scrape-running-level.mjs"
   },
   "dependencies": {
     "react": "19.1.0",
