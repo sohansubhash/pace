@@ -28,6 +28,10 @@ type FinishTimeEditorProps = {
 };
 
 type ThemeMode = "system" | "light" | "dark";
+type SelectedRace = {
+  name: string;
+  meters: number;
+};
 
 const initialSecondsPerMeter = paceSecondsToSecondsPerMeter(8 * 60, "mile");
 
@@ -63,8 +67,8 @@ function PaceEditor({
 }: PaceEditorProps) {
   const paceSeconds = secondsPerMeterToPaceSeconds(secondsPerMeter, unit);
   const pace = secondsToPace(paceSeconds);
-  const formattedMinutes = pace.minutes.toString().padStart(2, "0");
-  const formattedSeconds = pace.seconds.toString().padStart(2, "0");
+  const formattedMinutes = formatTwoDigits(pace.minutes);
+  const formattedSeconds = formatTwoDigits(pace.seconds);
   const [draftMinutes, setDraftMinutes] = useState(formattedMinutes);
   const [draftSeconds, setDraftSeconds] = useState(formattedSeconds);
   const isEditing = activeUnit === unit;
@@ -200,6 +204,80 @@ function secondsToFinishParts(totalSeconds: number): {
   };
 }
 
+function formatFinishTime(totalSeconds: number): string {
+  const { hours, minutes, seconds } = secondsToFinishParts(totalSeconds);
+
+  return `${formatTwoDigits(hours)}:${formatTwoDigits(minutes)}:${formatTwoDigits(
+    seconds,
+  )}`;
+}
+
+function formatDistance(name: string, meters: number): string {
+  const kilometers = meters / 1000;
+  const miles = meters / 1609.344;
+  const normalizedName = name.toLowerCase();
+
+  if (normalizedName.endsWith("k")) {
+    return `${miles.toFixed(2)} mi`;
+  }
+
+  if (normalizedName.includes("mile")) {
+    return `${kilometers.toFixed(2)} km`;
+  }
+
+  if (normalizedName.endsWith("m")) {
+    return `${kilometers.toFixed(2)} km · ${miles.toFixed(2)} mi`;
+  }
+
+  if (meters === 1609.344) {
+    return `1 mi · ${kilometers.toFixed(2)} km`;
+  }
+
+  if (Number.isInteger(miles)) {
+    return `${miles} mi · ${kilometers.toFixed(2)} km`;
+  }
+
+  if (meters % 1000 === 0) {
+    return `${kilometers} km · ${miles.toFixed(2)} mi`;
+  }
+
+  return `${kilometers.toFixed(2)} km · ${miles.toFixed(2)} mi`;
+}
+
+function RaceInspector({
+  race,
+  secondsPerMeter,
+  onClose,
+}: {
+  race: SelectedRace;
+  secondsPerMeter: number;
+  onClose: () => void;
+}) {
+  return (
+    <section className="race-inspector" aria-label={`${race.name} details`}>
+      <div className="race-inspector-header">
+        <div>
+          <h3>{race.name}</h3>
+        </div>
+        <button type="button" onClick={onClose}>
+          Close
+        </button>
+      </div>
+
+      <dl className="race-inspector-list">
+        <div>
+          <dt>Distance</dt>
+          <dd>{formatDistance(race.name, race.meters)}</dd>
+        </div>
+        <div>
+          <dt>Finish Time</dt>
+          <dd>{formatFinishTime(secondsPerMeter * race.meters)}</dd>
+        </div>
+      </dl>
+    </section>
+  );
+}
+
 function FinishTimeEditor({
   activeRace,
   label,
@@ -326,6 +404,8 @@ export function App() {
   const [secondsPerMeter, setSecondsPerMeter] = useState(initialSecondsPerMeter);
   const [activeUnit, setActiveUnit] = useState<PaceUnit | null>(null);
   const [activeRace, setActiveRace] = useState<string | null>(null);
+  const [selectedRace, setSelectedRace] = useState<SelectedRace | null>(null);
+  const [raceCategory, setRaceCategory] = useState<RaceCategory>("Road");
   const [themeMode, setThemeMode] = useState<ThemeMode>("system");
 
   useEffect(() => {
@@ -436,30 +516,61 @@ export function App() {
         </div>
       </section>
 
+      {selectedRace && (
+        <section className="app-block" aria-label="Race detail">
+          <RaceInspector
+            race={selectedRace}
+            secondsPerMeter={secondsPerMeter}
+            onClose={() => setSelectedRace(null)}
+          />
+        </section>
+      )}
+
       <section className="app-block race-table" aria-labelledby="race-table-title">
         <h2 id="race-table-title" className="sr-only">
           Finish times
         </h2>
-        <div className="race-grid">
+        <div className="race-tabs" role="tablist" aria-label="Race categories">
           {raceCategoryNames.map((category) => (
-            <div className="race-group" key={category}>
-              <h3>{category}</h3>
-              <div className="race-list">
-                {raceCategories[category].map((race) => (
-                  <div className="race-row" key={race.name}>
-                    <span>{race.name}</span>
-                    <FinishTimeEditor
-                      activeRace={activeRace}
-                      label={race.name}
-                      meters={race.meters}
-                      secondsPerMeter={secondsPerMeter}
-                      onChange={updatePaceFromFinishTime}
-                      onBlur={() => setActiveRace(null)}
-                      onFocus={setActiveRace}
-                    />
-                  </div>
-                ))}
-              </div>
+            <button
+              aria-selected={raceCategory === category}
+              className={raceCategory === category ? "active" : ""}
+              key={category}
+              role="tab"
+              type="button"
+              onClick={() => setRaceCategory(category)}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+
+        <div className="race-list">
+          {raceCategories[raceCategory].map((race) => (
+            <div className="race-row" key={race.name}>
+              <button
+                aria-label={`Inspect ${race.name}`}
+                className="race-info-button"
+                type="button"
+                onClick={() =>
+                  setSelectedRace({
+                    name: race.name,
+                    meters: race.meters,
+                  })
+                }
+              >
+                i
+              </button>
+              <span>{race.name}</span>
+              <FinishTimeEditor
+                activeRace={activeRace}
+                label={race.name}
+                meters={race.meters}
+                secondsPerMeter={secondsPerMeter}
+                onChange={updatePaceFromFinishTime}
+                onBlur={() => setActiveRace(null)}
+                onFocus={setActiveRace}
+              />
             </div>
           ))}
         </div>
