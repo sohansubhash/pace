@@ -33,6 +33,11 @@ type SelectedRace = {
   meters: number;
 };
 
+const themeChromeColors = {
+  light: "#c3ccd7",
+  dark: "#0d131c",
+};
+
 const initialSecondsPerMeter = paceSecondsToSecondsPerMeter(8 * 60, "mile");
 
 function cleanTwoDigitValue(value: string): string {
@@ -409,7 +414,26 @@ export function App() {
   const [themeMode, setThemeMode] = useState<ThemeMode>("system");
 
   useEffect(() => {
+    const systemDarkQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const themeColorMeta = document.querySelector<HTMLMetaElement>(
+      'meta[name="theme-color"]',
+    );
+
+    function updateThemeChrome() {
+      const isDark =
+        themeMode === "dark" || (themeMode === "system" && systemDarkQuery.matches);
+
+      themeColorMeta?.setAttribute(
+        "content",
+        isDark ? themeChromeColors.dark : themeChromeColors.light,
+      );
+    }
+
     document.documentElement.dataset.theme = themeMode;
+    updateThemeChrome();
+    systemDarkQuery.addEventListener("change", updateThemeChrome);
+
+    return () => systemDarkQuery.removeEventListener("change", updateThemeChrome);
   }, [themeMode]);
 
   function updatePace(unit: PaceUnit, paceSeconds: number) {

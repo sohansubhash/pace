@@ -1,4 +1,5 @@
 :root {
+  --browser-bg: #c3ccd7;
   --page-bg: radial-gradient(circle at top, #f9fbff 0, #d9e1eb 58%, #c3ccd7 100%);
   --text: #273140;
   --strong-text: #1f2a38;
@@ -36,10 +37,12 @@
 html {
   min-width: 320px;
   min-height: 100%;
+  background-color: var(--browser-bg);
   background: var(--page-bg);
 }
 
 :root[data-theme="dark"] {
+  --browser-bg: #0d131c;
   --page-bg: radial-gradient(circle at top, #263547 0, #151e2a 58%, #0d131c 100%);
   --text: #d7e0ea;
   --strong-text: #f5f8fb;
@@ -68,6 +71,7 @@ html {
 
 @media (prefers-color-scheme: dark) {
   :root[data-theme="system"] {
+    --browser-bg: #0d131c;
     --page-bg: radial-gradient(circle at top, #263547 0, #151e2a 58%, #0d131c 100%);
     --text: #d7e0ea;
     --strong-text: #f5f8fb;
@@ -103,7 +107,32 @@ body {
   min-width: 320px;
   min-height: 100%;
   margin: 0;
+  background-color: var(--browser-bg);
   background: var(--page-bg);
+}
+
+body::before {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 6px;
+  background-color: var(--browser-bg);
+  content: "";
+  animation-name: hide-browser-color-strip;
+  animation-timeline: scroll();
+  animation-fill-mode: both;
+  animation-range-start: 10px;
+  animation-range-end: 11px;
+  animation-duration: 0.1s;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes hide-browser-color-strip {
+  to {
+    transform: translateY(-100px);
+  }
 }
 
 button,
