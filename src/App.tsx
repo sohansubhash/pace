@@ -1,94 +1,455 @@
-import { useMemo, useState } from "react";
+import { type FocusEvent, useEffect, useState } from "react";
 import {
   type PaceUnit,
-  convertPaceSeconds,
-  formatPace,
-  paceToSeconds,
+  paceSecondsToSecondsPerMeter,
+  secondsToPace,
+  secondsPerMeterToPaceSeconds,
 } from "./pace";
 
-const unitLabels: Record<PaceUnit, string> = {
-  mile: "min / mile",
-  kilometer: "min / km",
+type PaceEditorProps = {
+  unit: PaceUnit;
+  heading: string;
+  label: string;
+  secondsPerMeter: number;
+  activeUnit: PaceUnit | null;
+  onFocus: (unit: PaceUnit) => void;
+  onChange: (unit: PaceUnit, paceSeconds: number) => void;
 };
 
-export function App() {
-  const [unit, setUnit] = useState<PaceUnit>("mile");
-  const [minutes, setMinutes] = useState(8);
-  const [seconds, setSeconds] = useState(0);
+type FinishTimeEditorProps = {
+  activeRace: string | null;
+  label: string;
+  meters: number;
+  secondsPerMeter: number;
+  onChange: (meters: number, finishSeconds: number) => void;
+  onFocus: (race: string) => void;
+};
 
-  const totalSeconds = paceToSeconds(minutes, seconds);
-  const convertedUnit: PaceUnit = unit === "mile" ? "kilometer" : "mile";
-  const convertedSeconds = useMemo(
-    () => convertPaceSeconds(totalSeconds, unit),
-    [totalSeconds, unit],
-  );
+type ThemeMode = "system" | "light" | "dark";
+
+const initialSecondsPerMeter = paceSecondsToSecondsPerMeter(8 * 60, "mile");
+
+function cleanTwoDigitValue(value: string): string {
+  return value.replace(/\D/g, "").slice(0, 2);
+}
+
+function formatTwoDigits(value: number): string {
+  return value.toString().padStart(2, "0");
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+function normalizeTwoDigitDraft(value: string, maxValue?: number): string {
+  const parsedValue = Number.parseInt(value || "0", 10);
+  const normalizedValue =
+    maxValue === undefined ? parsedValue : Math.min(parsedValue, maxValue);
+
+  return formatTwoDigits(normalizedValue);
+}
+
+function PaceEditor({
+  unit,
+  heading,
+  label,
+  secondsPerMeter,
+  activeUnit,
+  onFocus,
+  onChange,
+}: PaceEditorProps) {
+  const paceSeconds = secondsPerMeterToPaceSeconds(secondsPerMeter, unit);
+  const pace = secondsToPace(paceSeconds);
+  const formattedMinutes = pace.minutes.toString().padStart(2, "0");
+  const formattedSeconds = pace.seconds.toString().padStart(2, "0");
+  const [draftMinutes, setDraftMinutes] = useState(formattedMinutes);
+  const [draftSeconds, setDraftSeconds] = useState(formattedSeconds);
+  const isEditing = activeUnit === unit;
+
+  useEffect(() => {
+    if (!isEditing) {
+      setDraftMinutes(formattedMinutes);
+      setDraftSeconds(formattedSeconds);
+    }
+  }, [formattedMinutes, formattedSeconds, isEditing]);
+
+  function updatePacePart(nextMinutes: string, nextSeconds: string) {
+    onFocus(unit);
+    const minutes = Number.parseInt(nextMinutes || "0", 10);
+    const rawSeconds = Number.parseInt(nextSeconds || "0", 10);
+    onChange(unit, minutes * 60 + Math.min(rawSeconds, 59));
+  }
 
   function updateMinutes(value: string) {
-    setMinutes(Math.max(0, Number.parseInt(value || "0", 10)));
+    const nextMinutes = cleanTwoDigitValue(value);
+    setDraftMinutes(nextMinutes);
+    updatePacePart(nextMinutes, draftSeconds);
   }
 
   function updateSeconds(value: string) {
-    const nextSeconds = Math.max(0, Number.parseInt(value || "0", 10));
-    setSeconds(Math.min(59, nextSeconds));
+    const nextSeconds = cleanTwoDigitValue(value);
+
+    setDraftSeconds(nextSeconds);
+    updatePacePart(draftMinutes, nextSeconds);
+  }
+
+  function commitParts(event: FocusEvent<HTMLDivElement>) {
+    if (event.currentTarget.contains(event.relatedTarget)) {
+      return;
+    }
+
+    setDraftMinutes(formattedMinutes);
+    setDraftSeconds(formattedSeconds);
   }
 
   return (
+    <section className="pace-card" aria-label={`${label} pace`}>
+      <p className="pace-heading">{heading}</p>
+      <div className="pace-input" aria-label={`${label} pace`} onBlur={commitParts}>
+        <div className="digit-stack">
+          <input
+            aria-label={`${label} pace minutes`}
+            inputMode="numeric"
+            maxLength={2}
+            placeholder="08"
+            type="text"
+            value={isEditing ? draftMinutes : formattedMinutes}
+            onBlur={() => setDraftMinutes(normalizeTwoDigitDraft(draftMinutes))}
+            onChange={(event) => updateMinutes(event.target.value)}
+            onFocus={(event) => {
+              onFocus(unit);
+              event.currentTarget.select();
+            }}
+          />
+          <input
+            aria-label={`${label} pace seconds`}
+            inputMode="numeric"
+            maxLength={2}
+            placeholder="00"
+            type="text"
+            value={isEditing ? draftSeconds : formattedSeconds}
+            onBlur={() => setDraftSeconds(normalizeTwoDigitDraft(draftSeconds, 59))}
+            onChange={(event) => updateSeconds(event.target.value)}
+            onFocus={(event) => {
+              onFocus(unit);
+              event.currentTarget.select();
+            }}
+          />
+        </div>
+
+        <div className="label-stack" aria-hidden="true">
+          <span>min</span>
+          <span>sec</span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+const sliderRange = {
+  min: paceSecondsToSecondsPerMeter(3 * 60, "mile"),
+  max: paceSecondsToSecondsPerMeter(20 * 60, "mile"),
+};
+const paceStepSecondsPerMeter = 0.005;
+
+const raceCategories = {
+  Track: [
+    { name: "100m", meters: 100 },
+    { name: "200m", meters: 200 },
+    { name: "400m", meters: 400 },
+    { name: "800m", meters: 800 },
+    { name: "1500m", meters: 1500 },
+    { name: "Mile", meters: 1609.344 },
+  ],
+  Road: [
+    { name: "5K", meters: 5000 },
+    { name: "10K", meters: 10000 },
+    { name: "10 Mile", meters: 16093.44 },
+    { name: "Half Marathon", meters: 21097.5 },
+    { name: "30K", meters: 30000 },
+    { name: "Marathon", meters: 42195 },
+  ],
+  Ultra: [
+    { name: "50K", meters: 50000 },
+    { name: "50 Mile", meters: 80467.2 },
+    { name: "100K", meters: 100000 },
+    { name: "100 Mile", meters: 160934.4 },
+    { name: "150 Mile", meters: 241401.6 },
+    { name: "200 Mile", meters: 321868.8 },
+  ],
+};
+
+type RaceCategory = keyof typeof raceCategories;
+const raceCategoryNames = Object.keys(raceCategories) as RaceCategory[];
+
+function secondsToFinishParts(totalSeconds: number): {
+  hours: number;
+  minutes: number;
+  seconds: number;
+} {
+  const roundedSeconds = Math.max(0, Math.round(totalSeconds));
+
+  return {
+    hours: Math.floor(roundedSeconds / 3600),
+    minutes: Math.floor((roundedSeconds % 3600) / 60),
+    seconds: roundedSeconds % 60,
+  };
+}
+
+function FinishTimeEditor({
+  activeRace,
+  label,
+  meters,
+  secondsPerMeter,
+  onChange,
+  onFocus,
+}: FinishTimeEditorProps) {
+  const finishParts = secondsToFinishParts(secondsPerMeter * meters);
+  const formattedHours = formatTwoDigits(finishParts.hours);
+  const formattedMinutes = formatTwoDigits(finishParts.minutes);
+  const formattedSeconds = formatTwoDigits(finishParts.seconds);
+  const isEditing = activeRace === label;
+  const [draftHours, setDraftHours] = useState(formattedHours);
+  const [draftMinutes, setDraftMinutes] = useState(formattedMinutes);
+  const [draftSeconds, setDraftSeconds] = useState(formattedSeconds);
+
+  useEffect(() => {
+    if (!isEditing) {
+      setDraftHours(formattedHours);
+      setDraftMinutes(formattedMinutes);
+      setDraftSeconds(formattedSeconds);
+    }
+  }, [formattedHours, formattedMinutes, formattedSeconds, isEditing]);
+
+  function updateFinishTime(
+    nextHours: string,
+    nextMinutes: string,
+    nextSeconds: string,
+  ) {
+    onFocus(label);
+
+    const hours = Number.parseInt(nextHours || "0", 10);
+    const minutes = Number.parseInt(nextMinutes || "0", 10);
+    const seconds = Number.parseInt(nextSeconds || "0", 10);
+
+    onChange(
+      meters,
+      hours * 3600 + Math.min(minutes, 59) * 60 + Math.min(seconds, 59),
+    );
+  }
+
+  function updateHours(value: string) {
+    const nextHours = cleanTwoDigitValue(value);
+
+    setDraftHours(nextHours);
+    updateFinishTime(nextHours, draftMinutes, draftSeconds);
+  }
+
+  function updateMinutes(value: string) {
+    const nextMinutes = cleanTwoDigitValue(value);
+
+    setDraftMinutes(nextMinutes);
+    updateFinishTime(draftHours, nextMinutes, draftSeconds);
+  }
+
+  function updateSeconds(value: string) {
+    const nextSeconds = cleanTwoDigitValue(value);
+
+    setDraftSeconds(nextSeconds);
+    updateFinishTime(draftHours, draftMinutes, nextSeconds);
+  }
+
+  function commitParts(event: FocusEvent<HTMLDivElement>) {
+    if (event.currentTarget.contains(event.relatedTarget)) {
+      return;
+    }
+
+    setDraftHours(formattedHours);
+    setDraftMinutes(formattedMinutes);
+    setDraftSeconds(formattedSeconds);
+  }
+
+  return (
+    <div className="finish-time" aria-label={`${label} finish time`} onBlur={commitParts}>
+      <input
+        aria-label={`${label} finish hours`}
+        inputMode="numeric"
+        maxLength={2}
+        type="text"
+        value={isEditing ? draftHours : formattedHours}
+        onBlur={() => setDraftHours(normalizeTwoDigitDraft(draftHours))}
+        onChange={(event) => updateHours(event.target.value)}
+        onFocus={(event) => {
+          onFocus(label);
+          event.currentTarget.select();
+        }}
+      />
+      <span aria-hidden="true">:</span>
+      <input
+        aria-label={`${label} finish minutes`}
+        inputMode="numeric"
+        maxLength={2}
+        type="text"
+        value={isEditing ? draftMinutes : formattedMinutes}
+        onBlur={() => setDraftMinutes(normalizeTwoDigitDraft(draftMinutes, 59))}
+        onChange={(event) => updateMinutes(event.target.value)}
+        onFocus={(event) => {
+          onFocus(label);
+          event.currentTarget.select();
+        }}
+      />
+      <span aria-hidden="true">:</span>
+      <input
+        aria-label={`${label} finish seconds`}
+        inputMode="numeric"
+        maxLength={2}
+        type="text"
+        value={isEditing ? draftSeconds : formattedSeconds}
+        onBlur={() => setDraftSeconds(normalizeTwoDigitDraft(draftSeconds, 59))}
+        onChange={(event) => updateSeconds(event.target.value)}
+        onFocus={(event) => {
+          onFocus(label);
+          event.currentTarget.select();
+        }}
+      />
+    </div>
+  );
+}
+
+export function App() {
+  const [secondsPerMeter, setSecondsPerMeter] = useState(initialSecondsPerMeter);
+  const [activeUnit, setActiveUnit] = useState<PaceUnit | null>(null);
+  const [activeRace, setActiveRace] = useState<string | null>(null);
+  const [themeMode, setThemeMode] = useState<ThemeMode>("system");
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = themeMode;
+  }, [themeMode]);
+
+  function updatePace(unit: PaceUnit, paceSeconds: number) {
+    setSecondsPerMeter(paceSecondsToSecondsPerMeter(paceSeconds, unit));
+  }
+
+  function updatePaceFromFinishTime(meters: number, finishSeconds: number) {
+    setActiveUnit(null);
+    setSecondsPerMeter(finishSeconds / meters);
+  }
+
+  function updateSharedSlider(value: string) {
+    setActiveUnit(null);
+    setSecondsPerMeter(sliderRange.max + sliderRange.min - Number(value));
+  }
+
+  function adjustSecondsPerMeter(secondsDelta: number) {
+    setActiveUnit(null);
+    setSecondsPerMeter((currentSecondsPerMeter) => {
+      return Math.min(
+        sliderRange.max,
+        Math.max(sliderRange.min, currentSecondsPerMeter + secondsDelta),
+      );
+    });
+  }
+
+  const sliderValue = clamp(
+    sliderRange.max + sliderRange.min - secondsPerMeter,
+    sliderRange.min,
+    sliderRange.max,
+  );
+
+  return (
     <main className="page-shell">
-      <section className="converter" aria-labelledby="page-title">
-        <div className="intro">
-          <p className="eyebrow">Running pace converter</p>
-          <h1 id="page-title">Convert mile and kilometer pace.</h1>
+      <div className="page-toolbar">
+        <div className="theme-toggle" aria-label="Theme mode">
+          {(["system", "light", "dark"] as ThemeMode[]).map((mode) => (
+            <button
+              aria-pressed={themeMode === mode}
+              className={themeMode === mode ? "active" : ""}
+              key={mode}
+              type="button"
+              onClick={() => setThemeMode(mode)}
+            >
+              {mode}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <section className="app-block converter" aria-labelledby="page-title">
+        <h1 id="page-title" className="sr-only">
+          Pace converter
+        </h1>
+        <div className="pace-grid">
+          <PaceEditor
+            activeUnit={activeUnit}
+            heading="Per mile"
+            label="mi"
+            secondsPerMeter={secondsPerMeter}
+            unit="mile"
+            onChange={updatePace}
+            onFocus={setActiveUnit}
+          />
+
+          <PaceEditor
+            activeUnit={activeUnit}
+            heading="Per kilometer"
+            label="km"
+            secondsPerMeter={secondsPerMeter}
+            unit="kilometer"
+            onChange={updatePace}
+            onFocus={setActiveUnit}
+          />
         </div>
 
-        <div className="control-grid">
-          <label className="field">
-            <span>Minutes</span>
-            <input
-              min="0"
-              inputMode="numeric"
-              type="number"
-              value={minutes}
-              onChange={(event) => updateMinutes(event.target.value)}
-            />
-          </label>
-
-          <label className="field">
-            <span>Seconds</span>
-            <input
-              min="0"
-              max="59"
-              inputMode="numeric"
-              type="number"
-              value={seconds}
-              onChange={(event) => updateSeconds(event.target.value)}
-            />
-          </label>
-        </div>
-
-        <div className="unit-toggle" aria-label="Input pace unit">
+        <div className="slider-field" aria-label="Pace adjustment">
           <button
-            className={unit === "mile" ? "active" : ""}
             type="button"
-            onClick={() => setUnit("mile")}
+            onClick={() => adjustSecondsPerMeter(paceStepSecondsPerMeter)}
           >
-            min / mile
+            Slower
           </button>
+          <input
+            aria-label="Adjust pace"
+            max={sliderRange.max}
+            min={sliderRange.min}
+            step="0.00001"
+            type="range"
+            value={sliderValue}
+            onChange={(event) => updateSharedSlider(event.target.value)}
+          />
           <button
-            className={unit === "kilometer" ? "active" : ""}
             type="button"
-            onClick={() => setUnit("kilometer")}
+            onClick={() => adjustSecondsPerMeter(-paceStepSecondsPerMeter)}
           >
-            min / km
+            Faster
           </button>
         </div>
+      </section>
 
-        <div className="result" aria-live="polite">
-          <span>
-            {formatPace(totalSeconds)} {unitLabels[unit]}
-          </span>
-          <strong>
-            {formatPace(convertedSeconds)} {unitLabels[convertedUnit]}
-          </strong>
+      <section className="app-block race-table" aria-labelledby="race-table-title">
+        <h2 id="race-table-title" className="sr-only">
+          Finish times
+        </h2>
+        <div className="race-grid">
+          {raceCategoryNames.map((category) => (
+            <div className="race-group" key={category}>
+              <h3>{category}</h3>
+              <div className="race-list">
+                {raceCategories[category].map((race) => (
+                  <div className="race-row" key={race.name}>
+                    <span>{race.name}</span>
+                    <FinishTimeEditor
+                      activeRace={activeRace}
+                      label={race.name}
+                      meters={race.meters}
+                      secondsPerMeter={secondsPerMeter}
+                      onChange={updatePaceFromFinishTime}
+                      onFocus={setActiveRace}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </section>
     </main>

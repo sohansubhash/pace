@@ -1,33 +1,34 @@
-const KM_PER_MILE = 1.609344;
-
 export type PaceUnit = "mile" | "kilometer";
 
-export function paceToSeconds(minutes: number, seconds: number): number {
-  return minutes * 60 + seconds;
-}
+const metersByUnit: Record<PaceUnit, number> = {
+  mile: 1609.344,
+  kilometer: 1000,
+};
 
-export function secondsToPace(totalSeconds: number): {
+export type PaceParts = {
   minutes: number;
   seconds: number;
-} {
+};
+
+export function paceSecondsToSecondsPerMeter(
+  totalSeconds: number,
+  unit: PaceUnit,
+): number {
+  return Math.max(0, totalSeconds) / metersByUnit[unit];
+}
+
+export function secondsPerMeterToPaceSeconds(
+  secondsPerMeter: number,
+  unit: PaceUnit,
+): number {
+  return Math.max(0, secondsPerMeter) * metersByUnit[unit];
+}
+
+export function secondsToPace(totalSeconds: number): PaceParts {
   const roundedSeconds = Math.max(0, Math.round(totalSeconds));
 
   return {
     minutes: Math.floor(roundedSeconds / 60),
     seconds: roundedSeconds % 60,
   };
-}
-
-export function convertPaceSeconds(
-  totalSeconds: number,
-  fromUnit: PaceUnit,
-): number {
-  return fromUnit === "mile"
-    ? totalSeconds / KM_PER_MILE
-    : totalSeconds * KM_PER_MILE;
-}
-
-export function formatPace(totalSeconds: number): string {
-  const pace = secondsToPace(totalSeconds);
-  return `${pace.minutes}:${pace.seconds.toString().padStart(2, "0")}`;
 }
