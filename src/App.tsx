@@ -1,179 +1,96 @@
-import { useState } from "react";
-import { Helmet, HelmetProvider } from "react-helmet-async";
+import { useMemo, useState } from "react";
 import {
-  convertPace,
-  findClosestValue,
-  findBoundingPosition,
-  generatePaceOptions,
-  generateSpeedOptions,
-} from "./util";
-import AppHeader from "./components/appheader";
-import PaceCommand from "./components/pacecommand";
-import PaceConverter from "./components/converter";
-import RaceFinishTimes from "./components/racetimes";
+  type PaceUnit,
+  convertPaceSeconds,
+  formatPace,
+  paceToSeconds,
+} from "./pace";
 
-export default function App() {
-  const [minPerMile, setMinPerMile] = useState("8.00");
-  const [minPerKm, setMinPerKm] = useState("4.97");
-  const [mph, setMph] = useState("7.5");
-  const [kmh, setKmh] = useState("12.1");
-  const [lastChangedUnit, setLastChangedUnit] = useState<string>("min/mi");
+const unitLabels: Record<PaceUnit, string> = {
+  mile: "min / mile",
+  kilometer: "min / km",
+};
 
-  // Store the exact precise values for highlights
-  const [preciseMinPerMile, setPreciseMinPerMile] = useState(8.0);
-  const [preciseMinPerKm, setPreciseMinPerKm] = useState(4.97);
-  const [preciseMph, setPreciseMph] = useState(7.5);
-  const [preciseKmh, setPreciseKmh] = useState(12.1);
+export function App() {
+  const [unit, setUnit] = useState<PaceUnit>("mile");
+  const [minutes, setMinutes] = useState(8);
+  const [seconds, setSeconds] = useState(0);
 
-  const minMileOptions = generatePaceOptions(4, 15);
-  const minKmOptions = generatePaceOptions(2.5, 9);
-  const mphOptions = generateSpeedOptions(3, 20, 0.1);
-  const kmhOptions = generateSpeedOptions(5, 32, 0.1);
+  const totalSeconds = paceToSeconds(minutes, seconds);
+  const convertedUnit: PaceUnit = unit === "mile" ? "kilometer" : "mile";
+  const convertedSeconds = useMemo(
+    () => convertPaceSeconds(totalSeconds, unit),
+    [totalSeconds, unit],
+  );
 
-  const handleValueChange = (newValue: string, changedUnit: string) => {
-    const numValue = parseFloat(newValue);
-    setLastChangedUnit(changedUnit);
+  function updateMinutes(value: string) {
+    setMinutes(Math.max(0, Number.parseInt(value || "0", 10)));
+  }
 
-    if (changedUnit === "min/mi") {
-      setMinPerMile(newValue);
-      setPreciseMinPerMile(numValue);
-
-      // Calculate precise conversions
-      const preciseMinKmValue = convertPace(numValue, "min/mi", "min/km");
-      const preciseMphValue = convertPace(numValue, "min/mi", "mph");
-      const preciseKmhValue = convertPace(numValue, "min/mi", "kmh");
-
-      setPreciseMinPerKm(preciseMinKmValue);
-      setPreciseMph(preciseMphValue);
-      setPreciseKmh(preciseKmhValue);
-
-      // Set wheel positions to bounding discrete values for precise display
-      setMinPerKm(findBoundingPosition(preciseMinKmValue, minKmOptions));
-      setMph(findBoundingPosition(preciseMphValue, mphOptions));
-      setKmh(findBoundingPosition(preciseKmhValue, kmhOptions));
-    } else if (changedUnit === "min/km") {
-      setMinPerKm(newValue);
-      setPreciseMinPerKm(numValue);
-
-      // Calculate precise conversions
-      const preciseMinMileValue = convertPace(numValue, "min/km", "min/mi");
-      const preciseMphValue = convertPace(numValue, "min/km", "mph");
-      const preciseKmhValue = convertPace(numValue, "min/km", "kmh");
-
-      setPreciseMinPerMile(preciseMinMileValue);
-      setPreciseMph(preciseMphValue);
-      setPreciseKmh(preciseKmhValue);
-
-      // Set wheel positions to bounding discrete values for precise display
-      setMinPerMile(findBoundingPosition(preciseMinMileValue, minMileOptions));
-      setMph(findBoundingPosition(preciseMphValue, mphOptions));
-      setKmh(findBoundingPosition(preciseKmhValue, kmhOptions));
-    } else if (changedUnit === "mph") {
-      setMph(newValue);
-      setPreciseMph(numValue);
-
-      // Calculate precise conversions
-      const preciseMinMileValue = convertPace(numValue, "mph", "min/mi");
-      const preciseMinKmValue = convertPace(numValue, "mph", "min/km");
-      const preciseKmhValue = convertPace(numValue, "mph", "kmh");
-
-      setPreciseMinPerMile(preciseMinMileValue);
-      setPreciseMinPerKm(preciseMinKmValue);
-      setPreciseKmh(preciseKmhValue);
-
-      // Set wheel positions to bounding discrete values for precise display
-      setMinPerMile(findBoundingPosition(preciseMinMileValue, minMileOptions));
-      setMinPerKm(findBoundingPosition(preciseMinKmValue, minKmOptions));
-      setKmh(findBoundingPosition(preciseKmhValue, kmhOptions));
-    } else if (changedUnit === "kmh") {
-      setKmh(newValue);
-      setPreciseKmh(numValue);
-
-      // Calculate precise conversions
-      const preciseMinMileValue = convertPace(numValue, "kmh", "min/mi");
-      const preciseMinKmValue = convertPace(numValue, "kmh", "min/km");
-      const preciseMphValue = convertPace(numValue, "kmh", "mph");
-
-      setPreciseMinPerMile(preciseMinMileValue);
-      setPreciseMinPerKm(preciseMinKmValue);
-      setPreciseMph(preciseMphValue);
-
-      // Set wheel positions to bounding discrete values for precise display
-      setMinPerMile(findBoundingPosition(preciseMinMileValue, minMileOptions));
-      setMinPerKm(findBoundingPosition(preciseMinKmValue, minKmOptions));
-      setMph(findBoundingPosition(preciseMphValue, mphOptions));
-    }
-  };
-
-  const handlePreciseUpdate = (preciseMinPerMileValue: number) => {
-    setLastChangedUnit("min/mi");
-    setPreciseMinPerMile(preciseMinPerMileValue);
-
-    // Calculate all precise conversions
-    const preciseMinKmValue = convertPace(
-      preciseMinPerMileValue,
-      "min/mi",
-      "min/km",
-    );
-    const preciseMphValue = convertPace(
-      preciseMinPerMileValue,
-      "min/mi",
-      "mph",
-    );
-    const preciseKmhValue = convertPace(
-      preciseMinPerMileValue,
-      "min/mi",
-      "kmh",
-    );
-
-    setPreciseMinPerKm(preciseMinKmValue);
-    setPreciseMph(preciseMphValue);
-    setPreciseKmh(preciseKmhValue);
-
-    // Update display values with bounding positions (active wheel gets exact value)
-    setMinPerMile(findClosestValue(preciseMinPerMileValue, minMileOptions));
-    setMinPerKm(findBoundingPosition(preciseMinKmValue, minKmOptions));
-    setMph(findBoundingPosition(preciseMphValue, mphOptions));
-    setKmh(findBoundingPosition(preciseKmhValue, kmhOptions));
-  };
+  function updateSeconds(value: string) {
+    const nextSeconds = Math.max(0, Number.parseInt(value || "0", 10));
+    setSeconds(Math.min(59, nextSeconds));
+  }
 
   return (
-    <HelmetProvider>
-      <Helmet>
-        <title>Pace Converter</title>
-        <meta name="description" content="Running pace converter tool" />
-      </Helmet>
+    <main className="page-shell">
+      <section className="converter" aria-labelledby="page-title">
+        <div className="intro">
+          <p className="eyebrow">Running pace converter</p>
+          <h1 id="page-title">Convert mile and kilometer pace.</h1>
+        </div>
 
-      <AppHeader />
-      <div
-        style={{
-          padding: "20px",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: "24px",
-        }}
-      >
-        <PaceCommand onCommandUpdate={handlePreciseUpdate} />
+        <div className="control-grid">
+          <label className="field">
+            <span>Minutes</span>
+            <input
+              min="0"
+              inputMode="numeric"
+              type="number"
+              value={minutes}
+              onChange={(event) => updateMinutes(event.target.value)}
+            />
+          </label>
 
-        <PaceConverter
-          minPerMile={minPerMile}
-          minPerKm={minPerKm}
-          mph={mph}
-          kmh={kmh}
-          preciseMinPerMile={preciseMinPerMile}
-          preciseMinPerKm={preciseMinPerKm}
-          preciseMph={preciseMph}
-          preciseKmh={preciseKmh}
-          lastChangedUnit={lastChangedUnit}
-          onValueChange={handleValueChange}
-        />
+          <label className="field">
+            <span>Seconds</span>
+            <input
+              min="0"
+              max="59"
+              inputMode="numeric"
+              type="number"
+              value={seconds}
+              onChange={(event) => updateSeconds(event.target.value)}
+            />
+          </label>
+        </div>
 
-        <RaceFinishTimes
-          minPerMile={preciseMinPerMile.toFixed(3)}
-          onPreciseUpdate={handlePreciseUpdate}
-        />
-      </div>
-    </HelmetProvider>
+        <div className="unit-toggle" aria-label="Input pace unit">
+          <button
+            className={unit === "mile" ? "active" : ""}
+            type="button"
+            onClick={() => setUnit("mile")}
+          >
+            min / mile
+          </button>
+          <button
+            className={unit === "kilometer" ? "active" : ""}
+            type="button"
+            onClick={() => setUnit("kilometer")}
+          >
+            min / km
+          </button>
+        </div>
+
+        <div className="result" aria-live="polite">
+          <span>
+            {formatPace(totalSeconds)} {unitLabels[unit]}
+          </span>
+          <strong>
+            {formatPace(convertedSeconds)} {unitLabels[convertedUnit]}
+          </strong>
+        </div>
+      </section>
+    </main>
   );
 }
