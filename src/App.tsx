@@ -471,6 +471,7 @@ export function App() {
 
   return (
     <main className="page-shell">
+      <div className="custom-theme-color" aria-hidden="true" />
       <div className="page-toolbar">
         <div className="theme-toggle" aria-label="Theme mode">
           {(["system", "light", "dark"] as ThemeMode[]).map((mode) => (
